@@ -1,5 +1,5 @@
 # jsonsearch
-## JSON data file search and filtering using vanilla JavaScript and Fetch API  
+## JSON data file search and filter using vanilla JavaScript and Fetch API  
 
 ## [View Demo](https://mtbradley.github.io/jsonsearch)
 
