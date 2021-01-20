@@ -99,7 +99,7 @@ search_bar.addEventListener("keyup", e => {
                 </div>
               </div>
             <footer class="card-footer">
-              <p class="card-footer-item"><a href="https://${val.prod_url}" class="button is-fullwidth is-link is-outlined">${val.store_name}</a></p>
+              <p class="card-footer-item"><a href="https://${val.prod_url}" target="_blank" class="button is-fullwidth is-link is-outlined">${val.store_name}</a></p>
             </footer>
           </div>
         </div>
