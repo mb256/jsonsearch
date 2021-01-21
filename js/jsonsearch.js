@@ -2,10 +2,17 @@
 // Author: Mark Bradley (github.com/mtbradley)
 //==========================
 
-const json_data_file = "json/data.json";
-const images_path = "images";
-const min_search_length = 2; // 3 characters as count starts at 0
-
+const JSON_DATA_FILE = "json/data.json";
+const IMAGES_PATH= "images/";
+const MIN_SEARCH_LENGTH = 2;
+const SEARCH_BAR = document.getElementById("search");
+const RESULT_COUNTERS_DIV = document.getElementById("result-counters");
+const DATA_OUTPUT_DIV = document.getElementById('product-data');
+const BUTTON_TOP_DIV = document.getElementById("btn-page-top");
+const RUN_TIME_DIV = document.getElementById("runtime");
+const TOTAL_RECORD_COUNT = document.getElementById("total-record-count");
+const SEARCH_RESULT_COUNT = document.getElementById('search-result-count');
+const SALE_RESULT_COUNT = document.getElementById('sale-count');
 
 function sortJsonByProperty(property) {
   return function (a, b) {
@@ -14,6 +21,15 @@ function sortJsonByProperty(property) {
 
     return 0;
   };
+}
+
+function formatDate(dateInput) {
+  // Input format YYYYMMDD 20210118 and output result: MONTH DAY YYYY Jan 18 2021
+  let datePattern = /(\d{4})(\d{2})(\d{2})/;
+  let dateNew = new Date(
+    dateInput.replace(datePattern, "$1-$2-$3"));
+  dateNew = dateNew.toString().substring(4, 15);
+  return dateNew;
 }
 
 function status(response) {
@@ -28,65 +44,57 @@ function json(response) {
   return response.json();
 }
 
-const search_bar = document.getElementById("search");
-
-search_bar.addEventListener("keyup", function(event) {
+SEARCH_BAR.addEventListener("keyup", function(event) {
   if (event.key === "Enter") {
-      search_bar.blur();
+      SEARCH_BAR.blur();
   }
 });
 
-search_bar.addEventListener("keyup", e => {
-  let search_string = e.target.value;
+SEARCH_BAR.addEventListener("keyup", e => {
+  let searchString = e.target.value;
   let t_start = performance.now();
-  fetch(json_data_file)
+  fetch(JSON_DATA_FILE)
     .then(status)
     .then(json)
     .then(function (data) {
     data.sort(sortJsonByProperty("prod_price_saving"));
     data.reverse();
-    search_string = search_string.trim();
-    search_string = search_string.replace(/[|&;$%@"<>()\.//\\+,]/g, "");
-    let regstr = "";
-    let result_count = 0;
-    let result_output = "";
-    let runtime_output = "";
-    let result_count_output = "";
+    searchString = searchString.trim();
+    searchString = searchString.replace(/[|&;$%@"<>()\.//\\+,]/g, "");
+    let regExString = "";
+    let resultCount = 0;
+    let saleCount = 0;
+    let resultDataOutput = "";
+    let runtimeOutput = "";
 
-    if (result_count !== 0 || search_string.length > min_search_length) {
-      let keywords = search_string.split(" ");
+    if (resultCount !== 0 || searchString.length > MIN_SEARCH_LENGTH) {
+      let keywords = searchString.split(" ");
       keywords.forEach(function (keyword) {
         keyword = keyword.trim();
-        regstr += `(?=.*${keyword})`;
+        regExString += `(?=.*${keyword})`;
       });
-      let regex = new RegExp(regstr, "gi");
+      let regex = new RegExp(regExString, "gi");
       data.forEach(function (val, key) {
         if (
           val.store_name.search(regex) != -1 ||
           val.prod_name.search(regex) != -1
         ) {
-          result_count += 1;
-          if (val.fetch_date !== null) {
-            let date_str = val.fetch_date;
-            let date_pattern = /(\d{4})(\d{2})(\d{2})/;
-            let date_mod = new Date(
-              date_str.replace(date_pattern, "$1-$2-$3")
-            );
-            var date_new = date_mod.toString().substring(4, 15);
+          resultCount += 1;
+          if (val.prod_price_saving !== null) {
+            saleCount += 1;
           }
-
-          result_output += `
+          resultDataOutput += `
           <div class="column is-one-quarter-desktop is-one-third-tablet">
             <div class="card is-shady">
               <div class="card-image mx-2">
                 <figure class="image is-1by1">
-                  <a href="https://${val.prod_url}" target="_blank"><img src="${images_path}/products/${val.prod_image}" alt="Product Image for ${val.prod_name}" class="modal-button" data-target="modal-image2"></a>
+                  <a href="https://${val.prod_url}" target="_blank"><img src="${IMAGES_PATH}products/${val.prod_image}" alt="Product Image for ${val.prod_name}" class="modal-button" data-target="modal-image2"></a>
                 </figure>
               </div>
               <div class="card-content">
                 <div class="content">
-                <h4>${result_count}. ${val.prod_name.length > 42 ? (val.prod_name.substring(0, 42) + '...') : val.prod_name}</h4>
-                <p>${val.prod_name}. This price was current on ${date_new}.</p>
+                <h4>${resultCount}. ${val.prod_name.length > 42 ? (val.prod_name.substring(0, 42) + '...') : val.prod_name}</h4>
+                <p>${val.prod_name}. This price was current on ${val.fetch_date !== null ? formatDate(val.fetch_date) : "unknown date"}.</p>
                   <div class="has-text-centered">
                   ${val.prod_price_saving !== null ? `
                   <button class="button is-danger is-medium is-rounded mx-2 my-2">Now $${val.prod_price_now}</button><br />
@@ -107,35 +115,37 @@ search_bar.addEventListener("keyup", e => {
         }
       });
     }
-    if (result_count > 0 && search_string.length > min_search_length) {
-      document.getElementById("btn-page-top").style.display = "block";
-      result_count_output = `${result_count}`;
-    } else if (result_count == 0 && search_string.length > 3) {
-      result_count_output = "0";
-      result_output = "";
-      runtime_output = "";
-    } else if (result_count == 0 || search_string.length <= min_search_length) {
-      document.getElementById("btn-page-top").style.display = "none";
-      result_count_output = "_";
-      result_output = "";
-      runtime_output = "";
+    if (resultCount > 0 && searchString.length > MIN_SEARCH_LENGTH) {
+      BUTTON_TOP_DIV.style.display = "block";
+      RESULT_COUNTERS_DIV.style.display = "block";
+    } else if (resultCount == 0 && searchString.length > 3) {
+      BUTTON_TOP_DIV.style.display = "none";
+      RESULT_COUNTERS_DIV.style.display = "none";
+      resultDataOutput = "";
+      runtimeOutput = "";
+    } else if (resultCount == 0 || searchString.length <= MIN_SEARCH_LENGTH) {
+      BUTTON_TOP_DIV.style.display = "none";
+      RESULT_COUNTERS_DIV.style.display = "none";
+      resultDataOutput = "";
+      runtimeOutput = "";
     }
-    document.querySelector('#pricedata').innerHTML = result_output;
-    document.querySelector('#search_results').innerHTML = result_count_output;
+    DATA_OUTPUT_DIV.innerHTML = resultDataOutput;
+    SEARCH_RESULT_COUNT.innerHTML = resultCount;
+    SALE_RESULT_COUNT.innerHTML = saleCount;
     let t_finish = performance.now();
-    if (result_count !== 0 && search_string.length > min_search_length) {
+    if (resultCount !== 0 && searchString.length > MIN_SEARCH_LENGTH) {
       let t_runtime = (t_finish - t_start).toFixed(2);
-      runtime_output = `Runtime ${t_runtime} milliseconds`;
+      runtimeOutput = `Runtime ${t_runtime} milliseconds`;
     }
-    document.querySelector('#runtime').innerHTML = runtime_output;
+    RUN_TIME_DIV.innerHTML = runtimeOutput;
   })
   .catch(function (error) {
-    console.log("Request failed", error);
+    console.log("There was an error with the JSON data file request.", error);
   });
 });
 
 document.addEventListener("DOMContentLoaded", function() {
-  fetch(json_data_file)
+  fetch(JSON_DATA_FILE)
     .then(status)
     .then(json)
     .then(function (data) {
@@ -144,7 +154,7 @@ document.addEventListener("DOMContentLoaded", function() {
       if (obj_count) {
         total_output = `${obj_count}`;
       }
-      document.querySelector('#total_records').innerHTML = total_output;
+      TOTAL_RECORD_COUNT.innerHTML = total_output;
     })
     .catch(function (error) {
       console.log("Request failed", error);
@@ -157,7 +167,7 @@ document.addEventListener("error", function (event) {
       let alt_text = event.target.alt.toLowerCase();
       let alt_text_keywords = "Product Image";
       if (alt_text.includes(alt_text_keywords.toLowerCase())) {
-        event.target.src = `${images_path}/placeholder/product.jpg`;
+        event.target.src = `${IMAGES_PATH}placeholder/product.jpg`;
         event.target.alt = "Image not found.";
       }
   },
