@@ -118,14 +118,17 @@ SEARCH_BAR.addEventListener("keyup", e => {
     if (resultCount > 0 && searchString.length > MIN_SEARCH_LENGTH) {
       BUTTON_TOP_DIV.style.display = "block";
       RESULT_COUNTERS_DIV.style.display = "block";
+      SEARCH_BAR.style.color = "";
     } else if (resultCount == 0 && searchString.length > 3) {
       BUTTON_TOP_DIV.style.display = "none";
       RESULT_COUNTERS_DIV.style.display = "none";
+      SEARCH_BAR.style.color = "red";
       resultDataOutput = "";
       runtimeOutput = "";
     } else if (resultCount == 0 || searchString.length <= MIN_SEARCH_LENGTH) {
       BUTTON_TOP_DIV.style.display = "none";
       RESULT_COUNTERS_DIV.style.display = "none";
+      SEARCH_BAR.style.color = "";
       resultDataOutput = "";
       runtimeOutput = "";
     }
