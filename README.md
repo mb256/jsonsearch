@@ -1,7 +1,7 @@
 # jsonsearch
 ## JSON data file search and filter using vanilla JavaScript and Fetch API  
 
-## [View Demo](https://wocdev.github.io/jsonsearch)
+## [View Demo](https://mb256.github.io/jsonsearch)
 
     Features / Updates:
 
